@@ -1,8 +1,20 @@
+/*
+===========================================
+    SUPER TRUNFO - VERSÃO PAISES
+    Autor: Vinicius Paiva de Albuquerque
+    Curso: Engenharia de Software - 2º Semestre
+    Faculdade Estácio de Sá
+    Linguagem: C
+   
+===========================================
+*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
 
+// Estrutura que representa uma carta (país)
 typedef struct {
     char nome[50];
     char estado[30];
@@ -15,11 +27,13 @@ typedef struct {
     float pib_per_capita;
 } Carta;
 
+// Calcula atributos derivados da carta
 void calcular_derived(Carta *c) {
     c->densidade = (c->area > 0) ? (float)c->populacao / c->area : 0;
     c->pib_per_capita = (c->populacao > 0) ? (c->pib * 1000000000.0f) / (float)c->populacao : 0;
 }
 
+// Imprime números grandes de forma mais legível
 void print_humanized_ulong(unsigned long int num) {
     if (num >= 1000000000UL)
         printf("%lu.%03lu.%03lu.%03lu", num/1000000000UL, (num/1000000UL)%1000, (num/1000UL)%1000, num%1000);
@@ -31,6 +45,7 @@ void print_humanized_ulong(unsigned long int num) {
         printf("%lu", num);
 }
 
+// Mostra o menu de atributos disponíveis
 int mostrar_menu(int excluir_for) {
     int opc = 0;
     printf("\nEscolha um atributo para comparar:\n");
@@ -46,6 +61,7 @@ int mostrar_menu(int excluir_for) {
     return opc;
 }
 
+// Retorna o valor numérico de um atributo da carta
 float obter_valor(const Carta *c, int atributo) {
     switch (atributo) {
         case 1: return (float)c->populacao;
@@ -58,6 +74,7 @@ float obter_valor(const Carta *c, int atributo) {
     }
 }
 
+// Retorna o nome do atributo para exibição
 const char* nome_atributo(int atributo) {
     switch (atributo) {
         case 1: return "População";
@@ -73,6 +90,7 @@ const char* nome_atributo(int atributo) {
 int main() {
     srand(time(NULL));
 
+    // Lista de países (cartas)
     Carta paises[20] = {
         {"Brasil", "América do Sul", "BR01", 214000000UL, 8516000.0f, 2089.0f, 30},
         {"Japão", "Ásia", "JP01", 125800000UL, 377975.0f, 4230.0f, 20},
@@ -96,33 +114,41 @@ int main() {
         {"Suíça", "Europa", "CH01", 8700000UL, 41285.0f, 820.0f, 15}
     };
 
-    for (int i = 0; i < 20; i++) calcular_derived(&paises[i]);
+    // Calcula densidade e PIB per capita de todos
+    for (int i = 0; i < 20; i++)
+        calcular_derived(&paises[i]);
 
     printf("=============================================\n");
     printf("     SUPER TRUNFO - PLAYER vs CPU\n");
     printf("=============================================\n\n");
 
+    // Mostra a lista de países disponíveis
     printf("Lista de países disponíveis:\n");
-    for (int i = 0; i < 20; i++) printf("%2d - %s\n", i+1, paises[i].nome);
+    for (int i = 0; i < 20; i++)
+        printf("%2d - %s\n", i + 1, paises[i].nome);
 
     int escolha;
     printf("\nEscolha o número da sua carta: ");
     scanf("%d", &escolha);
+
     if (escolha < 1 || escolha > 20) {
         printf("Seleção inválida. Saindo...\n");
         return 0;
     }
 
-    Carta jogador = paises[escolha-1];
+    Carta jogador = paises[escolha - 1];
     int indice_cpu;
     do { indice_cpu = rand() % 20; } while (indice_cpu == escolha - 1);
     Carta cpu = paises[indice_cpu];
 
     printf("\nSua carta: %s\nCarta da CPU: %s\n", jogador.nome, cpu.nome);
 
+    // Jogador escolhe o atributo
     int attr_jogador = 0;
-    while ((attr_jogador = mostrar_menu(0)) == 0) printf("Opção inválida.\n");
+    while ((attr_jogador = mostrar_menu(0)) == 0)
+        printf("Opção inválida.\n");
 
+    // CPU escolhe estrategicamente
     int attr_cpu = 0;
     float max_dif = -1.0f;
     for (int i = 1; i <= 6; i++) {
@@ -136,29 +162,31 @@ int main() {
         }
     }
 
-    printf("\nVocê escolheu: %s\nCPU escolheu: %s\n", nome_atributo(attr_jogador), nome_atributo(attr_cpu));
+    printf("\nVocê escolheu: %s\nCPU escolheu: %s\n", 
+           nome_atributo(attr_jogador), nome_atributo(attr_cpu));
 
-    float v_j = obter_valor(&jogador, attr_jogador);
-    float v_c = obter_valor(&cpu, attr_jogador);
+    // Mostra resultados
+    float vj = obter_valor(&jogador, attr_jogador);
+    float vc = obter_valor(&cpu, attr_jogador);
 
     printf("\n=============================================\n");
     printf("             RESULTADO DA RODADA\n");
     printf("=============================================\n");
 
     printf("\n%s:\n  %s = ", nome_atributo(attr_jogador), jogador.nome);
-    if (attr_jogador == 1) print_humanized_ulong((unsigned long int)v_j);
-    else printf("%.2f", v_j);
+    if (attr_jogador == 1) print_humanized_ulong((unsigned long int)vj);
+    else printf("%.2f", vj);
 
     printf("\n  %s = ", cpu.nome);
-    if (attr_jogador == 1) print_humanized_ulong((unsigned long int)v_c);
-    else printf("%.2f", v_c);
+    if (attr_jogador == 1) print_humanized_ulong((unsigned long int)vc);
+    else printf("%.2f", vc);
 
-    if ((attr_jogador == 5 && v_j < v_c) || (attr_jogador != 5 && v_j > v_c))
-        printf("\nResultado: %s venceu\n", jogador.nome);
+    if ((attr_jogador == 5 && vj < vc) || (attr_jogador != 5 && vj > vc))
+        printf("\nResultado: %s venceu!\n", jogador.nome);
     else
-        printf("\nResultado: %s venceu\n", cpu.nome);
+        printf("\nResultado: %s venceu!\n", cpu.nome);
 
-    printf("=============================================\n");
+    printf("\n=============================================\n");
     printf("Fim da comparação. Obrigado por jogar!\n");
     printf("=============================================\n");
 
